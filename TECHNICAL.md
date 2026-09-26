@@ -1,4 +1,4 @@
-# How nncm works
+# How casm works
 
 The parts of the pipeline that are decisions rather than plumbing — why each stage does what it
 does, and where it will tell you it is unhappy. [README.md](README.md) covers installing and
@@ -81,7 +81,7 @@ every extra cell is another rule Phast's importer can reject. Values written int
 columns are checked against the template's own pick-lists, and each workbook is re-read after
 writing to confirm the cells landed. Both surface in the export report.
 
-If Phast still refuses a workbook, `nncm export --passthrough` writes an unmodified copy of the
+If Phast still refuses a workbook, `casm export --passthrough` writes an unmodified copy of the
 template (verifiably byte-identical). If that is rejected too, the problem is the template or the
 Phast version, not the generated rows.
 

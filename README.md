@@ -1,6 +1,6 @@
-# nncm
+# CASM
 
-**Neural Network Consequence Modelling** — a surrogate model for consequence analysis.
+**Consequence Analysis Surrogate Model** — fast consequence predictions from a neural network trained on Phast/Safeti results.
 Sample release scenarios, run them through Phast/Safeti once, train a neural network on the
 results, then predict consequences in milliseconds instead of hours of solver time.
 
@@ -16,18 +16,18 @@ config, the sampled cases, the workbooks, the dataset and every trained model.
 ## Install
 
 ```bash
-git clone https://github.com/faiqraedaya/nncm
-cd nncm
+git clone https://github.com/faiqraedaya/casm
+cd casm
 uv sync
 ```
 
 The Safeti input template is a client workbook and is not in the repository. Copy it to
-`templates/Safeti Template Input Sheet.xlsx`, or set `phast.template` in a project's `nncm.json`.
+`templates/Safeti Template Input Sheet.xlsx`, or set `phast.template` in a project's `casm.json`.
 
 ## Use it
 
 ```bash
-uv run nncm gui
+uv run casm gui
 ```
 
 The window works through the five stages in order — **Project · Sample · Phast · Train ·
@@ -37,16 +37,16 @@ it depends on has finished.
 The same workflow from the command line:
 
 ```bash
-uv run nncm init                        # create ./workspace with a default config
-uv run nncm sample --vessels 500        # sampling design      -> cases/cases.csv
-uv run nncm export                      # Phast input workbook -> phast/input/*.xlsx
+uv run casm init                        # create ./workspace with a default config
+uv run casm sample --vessels 500        # sampling design      -> cases/cases.csv
+uv run casm export                      # Phast input workbook -> phast/input/*.xlsx
 
 #   ... import that workbook into Phast, run the study, export the results workbook ...
 
-uv run nncm import path/to/results.xlsx # training data        -> datasets/training_data.csv
-uv run nncm train                       # trained model        -> models/run_<stamp>/
-uv run nncm predict --temperature 25 --pressure 60 --orifice 25 --material METHANE --mc 50
-uv run nncm predict --csv inputs.csv     # adds predictions and a domain_warnings column
+uv run casm import path/to/results.xlsx # training data        -> datasets/training_data.csv
+uv run casm train                       # trained model        -> models/run_<stamp>/
+uv run casm predict --temperature 25 --pressure 60 --orifice 25 --material METHANE --mc 50
+uv run casm predict --csv inputs.csv     # adds predictions and a domain_warnings column
 ```
 
 Every command takes `--project/-p <dir>`; the default is `./workspace` in the current directory.
@@ -73,7 +73,7 @@ them in the config.
 
 ```
 workspace/
-├── nncm.json                  # single source of configuration
+├── casm.json                  # single source of configuration
 ├── cases/cases.csv            # the sampling design (one row per leak scenario)
 ├── phast/input/*.xlsx         # workbooks to import into Phast
 ├── phast/output/*.xlsx        # where to drop Phast result workbooks
@@ -85,7 +85,7 @@ workspace/
 
 ## Configuration
 
-Everything lives in `nncm.json`, editable in the app's **Project** stage: sampling ranges,
+Everything lives in `casm.json`, editable in the app's **Project** stage: sampling ranges,
 materials, the Phast template path and its per-column defaults, extraction filters and training
 hyperparameters.
 

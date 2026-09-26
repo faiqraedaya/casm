@@ -1,11 +1,11 @@
 """The pieces every page is built from.
 
 A component here reaches only for tokens and the factories in
-:mod:`nncm.gui.layout`, never a raw value, and hides itself when it has
+:mod:`casm.gui.layout`, never a raw value, and hides itself when it has
 nothing to say. The rules it exists to keep:
 
 * a container owns its edge — a table inside a panel draws no border of its own;
-* every figure carries a name and a unit, taken from :mod:`nncm.quantities`, so
+* every figure carries a name and a unit, taken from :mod:`casm.quantities`, so
   a label and its explanation cannot drift apart;
 * a table sorts on double-click, by model values, blanks last, and its totals
   live inside it as its last row;
@@ -295,7 +295,7 @@ class RangeField(QWidget):
 class Form(QWidget):
     """One row is label, editor, unit; the explanation is the hover tip on both.
 
-    Every label, unit and sentence comes from :mod:`nncm.quantities`, so there
+    Every label, unit and sentence comes from :mod:`casm.quantities`, so there
     is only ever one copy of each to keep true. A grid rather than a
     ``QFormLayout`` because the units have to line up in their own column: a
     clipped or drifting unit changes what the number means.
@@ -511,7 +511,7 @@ class PlotArea(QFrame):
         # no style sheet of its own to sit on the same ground.
         self._canvas = FigureCanvasQTAgg(figure)
         # What the chart capped or excluded is its hover tip, not printed text.
-        self._canvas.setToolTip("\n".join(getattr(figure, "nncm_caveats", [])))
+        self._canvas.setToolTip("\n".join(getattr(figure, "casm_caveats", [])))
         self._layout.addWidget(self._canvas)
         self._canvas.draw_idle()
 

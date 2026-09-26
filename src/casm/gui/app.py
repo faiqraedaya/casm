@@ -68,12 +68,12 @@ class MainWindow(QMainWindow):
 
     def __init__(self, project_root: Path | None = None):
         super().__init__()
-        self.setWindowTitle("NNCM — Neural network consequence modelling")
+        self.setWindowTitle("CASM — Consequence analysis surrogate model")
         self.setMinimumSize(QSize(self.MIN_W, self.MIN_H))
         self.resize(1360, 900)
         self.project = Project.create(Path(project_root or default_project_root()))
         self.runner = TaskRunner(self)
-        self.settings = QSettings("nncm", "nncm")
+        self.settings = QSettings("casm", "casm")
         self.detail_visible = False
         self._task_name = ""
         self._sidebar_width = Sidebar.DEFAULT_W
@@ -189,7 +189,7 @@ class MainWindow(QMainWindow):
                                "Open an existing project directory."))
         files.addSeparator()
         files.addAction(action("Save configuration", self.save_configuration, QKeySequence.Save,
-                               "Write the settings on the Project and Train pages to nncm.json."))
+                               "Write the settings on the Project and Train pages to casm.json."))
         files.addSeparator()
         files.addAction(action("Quit", self.close, QKeySequence.Quit, "Close the window."))
 
@@ -232,7 +232,7 @@ class MainWindow(QMainWindow):
         view.addAction(self.log_action)
 
         help_menu = self.menuBar().addMenu("&Help")
-        help_menu.addAction(action("About NNCM", self._about, None, "What this application does."))
+        help_menu.addAction(action("About CASM", self._about, None, "What this application does."))
 
     # -- shared services ---------------------------------------------------
     def log(self, message: str) -> None:
@@ -323,7 +323,7 @@ class MainWindow(QMainWindow):
         """
         project = self.project
         name = project.root.name or str(project.root)
-        self.setWindowTitle(f"{name} — NNCM")
+        self.setWindowTitle(f"{name} — CASM")
         self.sample_page.refresh_counts()
         self.phast_page.refresh_state()
 
@@ -395,9 +395,9 @@ class MainWindow(QMainWindow):
     def _about(self) -> None:
         QMessageBox.about(
             self,
-            "About NNCM",
-            f"<p style='font-size:{T.FONT_HEADING}px; font-weight:600;'>NNCM</p>"
-            "<p>Neural network consequence modelling. Samples release scenarios, "
+            "About CASM",
+            f"<p style='font-size:{T.FONT_HEADING}px; font-weight:600;'>CASM</p>"
+            "<p>Consequence analysis surrogate model. Samples release scenarios, "
             "drives them through Phast or Safeti, and trains a surrogate model "
             "that predicts consequence results in milliseconds rather than "
             "minutes.</p>"

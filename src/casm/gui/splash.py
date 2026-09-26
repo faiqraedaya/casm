@@ -1,14 +1,14 @@
 """The window shown while the application is still starting.
 
-Opening NNCM takes several seconds, almost all of it spent importing pandas,
+Opening CASM takes several seconds, almost all of it spent importing pandas,
 matplotlib and openpyxl before the first widget can be built. Without
 something on screen the user gets a taskbar entry and nothing else, which is
 indistinguishable from a launch that failed.
 
 **This module must stay cheap to import.** It reaches for PySide6 and the
-Qt-free tokens in :mod:`nncm.theme`, and nothing else — a splash that has to
+Qt-free tokens in :mod:`casm.theme`, and nothing else — a splash that has to
 wait for the slow imports before it can be shown is not a splash. The startup
-sequence in :func:`nncm.gui.startup.run` imports it first, puts it on screen,
+sequence in :func:`casm.gui.startup.run` imports it first, puts it on screen,
 and only then pulls in the modules that cost the time.
 
 The stages it reports are the real ones, named in the user's terms. It shows
@@ -40,8 +40,8 @@ class Splash(QWidget):
         self._done = 0
 
         panel = ly.vbox(self, margin=T.SPACING_SECTION, spacing=T.SPACING_ROW)
-        panel.addWidget(ly.brand("NNCM"))
-        panel.addWidget(ly.heading("Neural Network Consequence Modelling"))
+        panel.addWidget(ly.brand("CASM"))
+        panel.addWidget(ly.heading("Consequence Analysis Surrogate Model"))
         self._caption = ly.caption("Starting…")
         panel.addWidget(self._caption)
 

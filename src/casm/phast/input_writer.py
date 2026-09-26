@@ -8,7 +8,7 @@ converted into whatever units the template's header row declares.
 Two rules keep Phast's importer happy, and both matter more than they look:
 
 * **The template is patched, never re-saved.** Rows are injected into the
-  worksheet XML by :mod:`nncm.phast.patcher`; every other part of the file
+  worksheet XML by :mod:`casm.phast.patcher`; every other part of the file
   stays byte-identical. Re-saving through a spreadsheet library rewrites
   strings, drops the shared-string table and renames parts, and Phast rejects
   the result even though Excel opens it.
@@ -99,12 +99,12 @@ def write_input_workbook(
             f"The Safeti template was not found at {template_path}. "
             + (
                 'This project names its own template — set "template" in '
-                "nncm.json to a workbook that exists, or clear it to use the "
+                "casm.json to a workbook that exists, or clear it to use the "
                 "default location."
                 if custom
                 else "The template is a client workbook and is not distributed "
-                f"with NNCM: copy it to {template_path}, or point the project "
-                'at one by setting "template" in nncm.json.'
+                f"with CASM: copy it to {template_path}, or point the project "
+                'at one by setting "template" in casm.json.'
             )
         )
     output_path = Path(output_path)

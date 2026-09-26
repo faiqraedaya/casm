@@ -51,9 +51,9 @@ class Sidebar(QWidget):
 
         panel = ly.vbox(self, margin=T.SPACING_ROW, spacing=T.SPACING_GROUP)
 
-        brand = ly.brand("NNCM")
+        brand = ly.brand("CASM")
         brand.setContentsMargins(T.SPACING_ROW, T.SPACING_ROW, T.SPACING_ROW, 0)
-        brand.setToolTip("Neural network consequence modelling")
+        brand.setToolTip("Consequence analysis surrogate model")
         panel.addWidget(brand)
 
         nav = ly.vbox(spacing=2)  # one list, so the items sit tight together

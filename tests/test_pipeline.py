@@ -13,17 +13,17 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from nncm.config import Material, MixtureComponent, NncmConfig, Project, Range, SamplingConfig
-from nncm.features import (
+from casm.config import Material, MixtureComponent, CasmConfig, Project, Range, SamplingConfig
+from casm.features import (
     FeatureSpec,
     build_features,
     domain_report,
     fit_feature_spec,
     resolve_materials,
 )
-from nncm.phast import units
-from nncm.phast.output_reader import build_training_table, identifiers, parse_weather
-from nncm.sampling import generate_cases
+from casm.phast import units
+from casm.phast.output_reader import build_training_table, identifiers, parse_weather
+from casm.sampling import generate_cases
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = REPO_ROOT / "templates" / "Safeti Template Input Sheet.xlsx"
@@ -62,14 +62,14 @@ def _sampling_config(**overrides) -> SamplingConfig:
 def test_stale_template_path_is_cleared_but_a_custom_one_is_kept(tmp_path):
     # Written on Windows, opened anywhere: the shipped template's old absolute
     # path must be forgotten, whichever separator it uses.
-    stale = NncmConfig.from_dict(
-        {"version": 4, "phast": {"template": r"C:\Dev\nncm\templates\Safeti Template Input Sheet.xlsx"}}
+    stale = CasmConfig.from_dict(
+        {"version": 4, "phast": {"template": r"C:\Dev\casm\templates\Safeti Template Input Sheet.xlsx"}}
     )
     assert stale.phast.template == ""
     assert stale.migrated
 
     custom = tmp_path / "My Own Study.xlsx"
-    kept = NncmConfig.from_dict({"version": 4, "phast": {"template": str(custom)}})
+    kept = CasmConfig.from_dict({"version": 4, "phast": {"template": str(custom)}})
     assert kept.phast.template == str(custom)
 
 
@@ -83,6 +83,18 @@ def test_project_config_round_trip(tmp_path: Path):
     assert reopened.config.sampling.n_vessels == 123
     assert reopened.config.sampling.materials[0].properties["molecular_weight"] == 30.07
     assert isinstance(reopened.config.sampling.pressure, Range)
+
+
+def test_project_saved_as_nncm_json_opens_with_its_settings(tmp_path: Path):
+    project = Project.create(tmp_path / "proj")
+    project.config.sampling.n_vessels = 77
+    project.save_config()
+    project.config_path.rename(tmp_path / "proj" / "nncm.json")
+
+    reopened = Project.open(tmp_path / "proj")
+    assert reopened.config.sampling.n_vessels == 77
+    assert reopened.config_path.name == "casm.json"
+    assert not (tmp_path / "proj" / "nncm.json").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -151,13 +163,13 @@ def test_unknown_unit_raises_rather_than_writing_wrong_numbers():
 # Workbook writing (needs the client template)
 # ---------------------------------------------------------------------------
 def _phast_config():
-    config = NncmConfig().phast
+    config = CasmConfig().phast
     config.template = str(TEMPLATE)
     return config
 
 
 def _sheet_part(workbook_path: Path, sheet_name: str) -> str:
-    from nncm.phast.patcher import TemplatePatcher
+    from casm.phast.patcher import TemplatePatcher
 
     with TemplatePatcher(workbook_path) as patcher:
         return patcher.sheet_part(sheet_name)
@@ -165,8 +177,8 @@ def _sheet_part(workbook_path: Path, sheet_name: str) -> str:
 
 @requires_template
 def test_written_workbook_round_trips(tmp_path: Path):
-    from nncm.phast.input_writer import write_input_workbook
-    from nncm.phast.workbook import SafetiWorkbook
+    from casm.phast.input_writer import write_input_workbook
+    from casm.phast.workbook import SafetiWorkbook
 
     cases, _ = generate_cases(_sampling_config(n_vessels=5, n_leaks_per_vessel=3))
     out = tmp_path / "input.xlsx"
@@ -191,7 +203,7 @@ def test_export_changes_only_the_sheets_it_writes(tmp_path: Path):
     """Phast rejects a re-saved template, so every other part must survive intact."""
     import zipfile
 
-    from nncm.phast.input_writer import write_input_workbook
+    from casm.phast.input_writer import write_input_workbook
 
     cases, _ = generate_cases(_sampling_config(n_vessels=4, n_leaks_per_vessel=3))
     out = tmp_path / "input.xlsx"
@@ -212,7 +224,7 @@ def test_export_changes_only_the_sheets_it_writes(tmp_path: Path):
 
 @requires_template
 def test_patcher_refuses_to_overwrite_existing_rows():
-    from nncm.phast.patcher import PatchError, TemplatePatcher
+    from casm.phast.patcher import PatchError, TemplatePatcher
 
     with TemplatePatcher(TEMPLATE) as patcher:
         assert patcher.existing_max_row("Weather") >= 63
@@ -222,8 +234,8 @@ def test_patcher_refuses_to_overwrite_existing_rows():
 
 @requires_template
 def test_pure_components_and_mixtures_are_declared(tmp_path: Path):
-    from nncm.phast.input_writer import write_input_workbook
-    from nncm.phast.workbook import SafetiWorkbook
+    from casm.phast.input_writer import write_input_workbook
+    from casm.phast.workbook import SafetiWorkbook
 
     materials = [
         Material("METHANE"),
@@ -258,8 +270,8 @@ def test_pure_components_and_mixtures_are_declared(tmp_path: Path):
 
 @requires_template
 def test_workbook_splitting_keeps_vessels_intact(tmp_path: Path):
-    from nncm.phast.input_writer import write_input_workbook
-    from nncm.phast.workbook import SafetiWorkbook
+    from casm.phast.input_writer import write_input_workbook
+    from casm.phast.workbook import SafetiWorkbook
 
     cases, _ = generate_cases(_sampling_config(n_vessels=6, n_leaks_per_vessel=4))
     config = _phast_config()
@@ -381,7 +393,7 @@ def test_unmatched_results_still_group_by_vessel_state(tmp_path: Path):
 
 
 def test_a_sparse_target_is_not_dropped_by_the_nonpositive_gate(tmp_path: Path):
-    from nncm.config import ExtractionConfig
+    from casm.config import ExtractionConfig
 
     rows = [
         {"path": "S\\V1", "scenario": "A", "hole": 10.0, "rate": 1.0, "flame": None},
@@ -397,7 +409,7 @@ def test_a_sparse_target_is_not_dropped_by_the_nonpositive_gate(tmp_path: Path):
 
 
 def test_result_columns_resolve_despite_project_specific_thresholds():
-    from nncm.phast.output_reader import resolve_column, threshold_of
+    from casm.phast.output_reader import resolve_column, threshold_of
 
     frame = pd.DataFrame(
         columns=[
@@ -487,7 +499,7 @@ def test_domain_report_flags_extrapolation():
 # Training and prediction
 # ---------------------------------------------------------------------------
 def test_masked_scaler_ignores_missing_values():
-    from nncm.training import _fit_masked_scaler
+    from casm.training import _fit_masked_scaler
 
     scaler = _fit_masked_scaler(np.array([[1.0, 2.0], [3.0, 2.0], [5.0, np.nan]]))
     assert scaler.mean_[0] == pytest.approx(3.0)
@@ -496,7 +508,7 @@ def test_masked_scaler_ignores_missing_values():
 
 
 def test_grouped_split_never_shares_a_vessel_between_partitions():
-    from nncm.training import _grouped_split
+    from casm.training import _grouped_split
 
     groups = np.repeat(np.arange(50), 8).astype(str)
     train, val, test = _grouped_split(groups, test_size=0.2, valid_size=0.2, seed=7)
@@ -533,8 +545,8 @@ def _partial_dataset(n_vessels: int = 40) -> pd.DataFrame:
 
 
 def test_training_and_prediction_end_to_end(tmp_path: Path):
-    from nncm.predict import ModelBundle
-    from nncm.training import train_model
+    from casm.predict import ModelBundle
+    from casm.training import train_model
 
     project = Project.create(tmp_path / "masked")
     frame = _partial_dataset()

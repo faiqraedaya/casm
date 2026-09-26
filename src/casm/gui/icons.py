@@ -11,7 +11,7 @@ grid is exactly 1.5 px at 16 px, which is the weight the rest of the interface
 is drawn at.
 
 **Colour is never baked in.** The tint is injected per state from the ink
-ladder, so a change to a rung in :mod:`nncm.theme` reaches the icons without
+ladder, so a change to a rung in :mod:`casm.theme` reaches the icons without
 anyone touching artwork. A resting neutral icon takes the glyph rung, never
 primary ink — at primary it competes with the text beside it.
 

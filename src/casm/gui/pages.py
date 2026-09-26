@@ -7,7 +7,7 @@ The reading surfaces — tables, plots, metric cells — carry no buttons at all
 so the figures get the whole width.
 
 Each page reads its labels, units and explanations from
-:mod:`nncm.quantities`, and its state from the project on disk, so what is on
+:mod:`casm.quantities`, and its state from the project on disk, so what is on
 screen is what would happen if the stage were run right now.
 """
 
@@ -298,10 +298,10 @@ class ProjectPage(Page):
         )
 
         self.actions.add_secondary(
-            "Reload from disk", self._reload, "Discard edits and read nncm.json again."
+            "Reload from disk", self._reload, "Discard edits and read casm.json again."
         )
         self.save_button = self.actions.add_primary(
-            "Save configuration", self._save, "Write these settings to nncm.json."
+            "Save configuration", self._save, "Write these settings to casm.json."
         )
 
     def _add_material(self) -> None:

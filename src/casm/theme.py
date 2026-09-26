@@ -1,8 +1,8 @@
 """Design tokens — the single source of truth for every colour and metric.
 
-Deliberately Qt-free. The desktop shell (:mod:`nncm.gui.theme`) turns these
-into a style sheet; the matplotlib figures (:mod:`nncm.sampling`,
-:mod:`nncm.training`) read them directly. A chart drawn inside the window and
+Deliberately Qt-free. The desktop shell (:mod:`casm.gui.theme`) turns these
+into a style sheet; the matplotlib figures (:mod:`casm.sampling`,
+:mod:`casm.training`) read them directly. A chart drawn inside the window and
 the same chart saved as a PNG by the CLI therefore cannot drift apart, and
 ``core/`` never has to import anything from ``gui/`` to draw one.
 
@@ -23,7 +23,7 @@ cycling — a cycled palette silently reuses a hue and lies about identity.
 Callers fold the tail into :data:`SERIES_OTHER`, validated against the same
 three (worst dE 18.4 simulated, 23.5 normal).
 
-Run ``python -m nncm.theme`` to print the ladder with its contrast ratios.
+Run ``python -m casm.theme`` to print the ladder with its contrast ratios.
 """
 
 from __future__ import annotations
@@ -145,7 +145,7 @@ def _fonts_dir() -> Path:
     if beside_package.is_dir():
         return beside_package
     root = getattr(sys, "_MEIPASS", None)  # PyInstaller unpack directory
-    return Path(root) / "nncm" / "gui" / "fonts" if root else beside_package
+    return Path(root) / "casm" / "gui" / "fonts" if root else beside_package
 
 
 FONTS_DIR = _fonts_dir()
@@ -165,7 +165,7 @@ FONT_STACK = (FONT_VARIABLE_FAMILY, FONT_FAMILY) + _FALLBACKS
 """For Qt. The variable face first: its named instances cover the whole weight
 axis from one file, and — the reason it is here — Qt applies its kerning at
 sub-pixel positions, which the static faces only match once hinting is relaxed
-(see ``FONT_HINTING`` in :mod:`nncm.gui.theme`). The static family stays behind
+(see ``FONT_HINTING`` in :mod:`casm.gui.theme`). The static family stays behind
 it so a missing variable file costs nothing."""
 
 MPL_FONT_STACK = (FONT_FAMILY,) + _FALLBACKS
@@ -423,7 +423,7 @@ def figure_header(fig, title: str, caveats: "str | list[str]", *, inline: bool =
     The caveats are where a chart discloses what it capped, excluded or
     normalised. In a saved image they are printed under the title, since a
     file has no hover. In the window (``inline=False``) they are kept off the
-    figure and stored as ``fig.nncm_caveats``, which the plot area shows as its
+    figure and stored as ``fig.casm_caveats``, which the plot area shows as its
     hover tip, so the chart stays quiet until asked.
     Returns the figure fraction the axes may start at — with room left for the
     first row's own titles, which sit above the axes box.
@@ -434,7 +434,7 @@ def figure_header(fig, title: str, caveats: "str | list[str]", *, inline: bool =
     """
     if isinstance(caveats, str):
         caveats = [caveats]
-    fig.nncm_caveats = list(caveats)
+    fig.casm_caveats = list(caveats)
     if not inline:
         caveats = []
     width_in, height_in = fig.get_size_inches()

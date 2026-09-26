@@ -1,6 +1,6 @@
 """Schema reader for Safeti Excel interchange workbooks.
 
-Read-only by design. Writing goes through :mod:`nncm.phast.patcher`, which
+Read-only by design. Writing goes through :mod:`casm.phast.patcher`, which
 edits the workbook's XML in place — re-saving a template through openpyxl
 produces a file Phast will not import.
 

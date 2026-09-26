@@ -1,7 +1,7 @@
 [project]
-name = "nncm"
+name = "casm"
 version = "0.2.0"
-description = "Neural Network Consequence Modelling – samples release scenarios, drives them through Phast/Safeti, and trains a surrogate model that predicts consequence results."
+description = "Consequence Analysis Surrogate Model – samples release scenarios, drives them through Phast/Safeti, and trains a surrogate model that predicts consequence results."
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24",
@@ -23,11 +23,11 @@ dev = ["pytest>=8.0"]
 testpaths = ["tests"]
 
 [project.scripts]
-nncm = "nncm.__main__:main"
+casm = "casm.__main__:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nncm"]
+packages = ["src/casm"]
