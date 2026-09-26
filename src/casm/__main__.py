@@ -1,4 +1,4 @@
-"""CLI entry point — ``nncm <command>`` or ``python -m nncm``.
+"""CLI entry point — ``casm <command>`` or ``python -m casm``.
 
 Every command operates on a *project* directory (``--project``, default
 ``./workspace``) holding config, cases, workbooks, datasets and model runs.
@@ -10,7 +10,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import NncmConfig, Project, default_project_root
+from .config import CasmConfig, Project, default_project_root
 
 
 def _project(args: argparse.Namespace) -> Project:
@@ -24,7 +24,7 @@ def _log(message: str) -> None:
 
 def cmd_init(args: argparse.Namespace) -> int:
     root = Path(args.project) if args.project else default_project_root()
-    project = Project.create(root, NncmConfig(), overwrite=args.force)
+    project = Project.create(root, CasmConfig(), overwrite=args.force)
     print(f"project ready at {project.root}")
     print(f"config: {project.config_path}")
     return 0
@@ -160,7 +160,7 @@ def cmd_gui(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="nncm", description="Neural Network Consequence Modelling")
+    parser = argparse.ArgumentParser(prog="casm", description="Consequence Analysis Surrogate Model")
     parser.add_argument("--project", "-p", help="project directory (default: ./workspace)")
     sub = parser.add_subparsers(dest="command", required=True)
 

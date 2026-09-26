@@ -1,4 +1,4 @@
-"""Project configuration and on-disk layout for NNCM.
+"""Project configuration and on-disk layout for CASM.
 
 A *project* is a directory holding everything for one modelling campaign:
 config, sampled cases, Phast workbooks, extracted datasets and trained models.
@@ -28,12 +28,12 @@ def shipped_template() -> Path:
     Resolved on every call rather than frozen into a constant at import time,
     and never written into a project's configuration: a path to a file inside
     the installation is only true for the machine and the directory it was
-    computed on. Stored in ``nncm.json`` it breaks as soon as the checkout
+    computed on. Stored in ``casm.json`` it breaks as soon as the checkout
     moves, the project is opened elsewhere, or the app is frozen.
 
     The template is a client workbook and is not in the repository: place it
     in ``templates/`` of the checkout, or next to the package when installed,
-    or name one in the project's ``nncm.json``. Searched in that order after a
+    or name one in the project's ``casm.json``. Searched in that order after a
     frozen bundle; the checkout location is returned when none exists, so the
     error names the conventional place.
     """
@@ -55,7 +55,8 @@ template must go through :meth:`PhastConfig.template_path`, which falls back to
 the shipped one when the project does not name a template of its own.
 """
 
-CONFIG_FILENAME = "nncm.json"
+CONFIG_FILENAME = "casm.json"
+LEGACY_CONFIG_FILENAME = "nncm.json"  # name used before the project was renamed to CASM
 CONFIG_VERSION = 5
 
 
@@ -517,7 +518,7 @@ class TrainingConfig:
 
 
 @dataclass
-class NncmConfig:
+class CasmConfig:
     version: int = CONFIG_VERSION
     sampling: SamplingConfig = field(default_factory=SamplingConfig)
     phast: PhastConfig = field(default_factory=PhastConfig)
@@ -533,7 +534,7 @@ class NncmConfig:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "NncmConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "CasmConfig":
         upgraded = _migrate(data)
         config = _build(cls, upgraded)
         config.migrated = upgraded is not data
@@ -546,7 +547,7 @@ class NncmConfig:
         return path
 
     @classmethod
-    def load(cls, path: Path) -> "NncmConfig":
+    def load(cls, path: Path) -> "CasmConfig":
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         return cls.from_dict(data)
 
@@ -597,7 +598,7 @@ def _drop_stale_template(phast: dict[str, Any]) -> None:
 
 
 def _migrate(data: dict[str, Any]) -> dict[str, Any]:
-    """Bring an older ``nncm.json`` up to the current schema."""
+    """Bring an older ``casm.json`` up to the current schema."""
     version = int(data.get("version", 1) or 1)
     if version >= CONFIG_VERSION:
         return data
@@ -686,7 +687,7 @@ class Project:
     """Directory layout for one modelling campaign."""
 
     root: Path
-    config: NncmConfig = field(default_factory=NncmConfig)
+    config: CasmConfig = field(default_factory=CasmConfig)
 
     def __post_init__(self) -> None:
         self.root = Path(self.root).resolve()
@@ -751,12 +752,22 @@ class Project:
             directory.mkdir(parents=True, exist_ok=True)
 
     # -- lifecycle --------------------------------------------------------
+    @staticmethod
+    def _adopt_legacy_config(root: Path) -> None:
+        """Rename a pre-CASM ``nncm.json`` so older projects keep their settings."""
+        legacy = root / LEGACY_CONFIG_FILENAME
+        current = root / CONFIG_FILENAME
+        if legacy.is_file() and not current.exists():
+            legacy.rename(current)
+
     @classmethod
-    def create(cls, root: Path, config: NncmConfig | None = None, overwrite: bool = False) -> "Project":
-        project = cls(Path(root), config or NncmConfig())
+    def create(cls, root: Path, config: CasmConfig | None = None, overwrite: bool = False) -> "Project":
+        project = cls(Path(root), config or CasmConfig())
+        if not overwrite:
+            cls._adopt_legacy_config(project.root)
         project.ensure_dirs()
         if project.config_path.exists() and not overwrite:
-            project.config = NncmConfig.load(project.config_path)
+            project.config = CasmConfig.load(project.config_path)
             if project.config.migrated:
                 # Persist the upgrade so the file on disk matches what runs.
                 project.save_config()
@@ -768,8 +779,9 @@ class Project:
     @classmethod
     def open(cls, root: Path) -> "Project":
         root = Path(root).resolve()
+        cls._adopt_legacy_config(root)
         config_path = root / CONFIG_FILENAME
-        config = NncmConfig.load(config_path) if config_path.exists() else NncmConfig()
+        config = CasmConfig.load(config_path) if config_path.exists() else CasmConfig()
         if config.migrated and config_path.exists():
             config.save(config_path)
             config.migrated = False

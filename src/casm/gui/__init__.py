@@ -8,7 +8,7 @@ from pathlib import Path
 def launch(project_root: Path | None = None) -> int:
     """Open the desktop application.
 
-    Deferred so that importing :mod:`nncm.gui` — which the CLI does merely to
+    Deferred so that importing :mod:`casm.gui` — which the CLI does merely to
     find this function — does not drag in the whole widget stack.
     """
     from .startup import run

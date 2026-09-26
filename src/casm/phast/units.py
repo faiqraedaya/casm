@@ -1,4 +1,4 @@
-"""Unit conversion between NNCM canonical units and whatever the template asks for.
+"""Unit conversion between CASM canonical units and whatever the template asks for.
 
 The template declares each column's unit in header row 6. Writing a barg value
 into a column configured for ``psi`` is a silent, study-wide error that is very

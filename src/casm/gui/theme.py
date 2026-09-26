@@ -1,7 +1,7 @@
 """The look of the desktop application, in one place.
 
 This is the only module in the application that calls ``setStyleSheet``. Every
-colour and metric it uses comes from :mod:`nncm.theme`, which is Qt-free so the
+colour and metric it uses comes from :mod:`casm.theme`, which is Qt-free so the
 charts can read the same tokens without ``core`` importing anything from
 ``gui``. No widget carries a style sheet of its own, ever.
 

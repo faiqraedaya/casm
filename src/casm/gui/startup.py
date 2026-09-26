@@ -1,7 +1,7 @@
 """Bringing the application up, in an order the user can watch.
 
-Opening NNCM costs several seconds, and almost none of it is work this package
-does: it is the import of pandas, matplotlib and openpyxl that :mod:`nncm.gui.app`
+Opening CASM costs several seconds, and almost none of it is work this package
+does: it is the import of pandas, matplotlib and openpyxl that :mod:`casm.gui.app`
 pulls in transitively. That cost is unavoidable here — they are what the pages
 are built out of — but being told nothing while it happens is not.
 
@@ -11,7 +11,7 @@ So the order matters, and it is the whole point of this module:
 2. the splash, which imports nothing heavier than the tokens;
 3. *then* the expensive imports, each one announced before it starts.
 
-Putting this in :mod:`nncm.gui.app` would not work. That module is the
+Putting this in :mod:`casm.gui.app` would not work. That module is the
 expensive import, so anything it contains can only run once the wait is
 already over.
 """

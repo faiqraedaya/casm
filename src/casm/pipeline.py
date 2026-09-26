@@ -56,7 +56,7 @@ def run_phast_export(
     if passthrough:
         # Diagnostic: an exact copy of the template with no rows added. If Phast
         # rejects this too, the problem is the template or the Phast version,
-        # not anything NNCM writes.
+        # not anything CASM writes.
         from .phast.patcher import TemplatePatcher
 
         target = Path(output_path or project.phast_input_dir / "template_passthrough.xlsx")

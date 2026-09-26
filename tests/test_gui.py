@@ -20,8 +20,8 @@ pytest.importorskip("PySide6", reason="PySide6 is not installed")
 from PySide6.QtCore import QThread  # noqa: E402
 from PySide6.QtWidgets import QApplication, QWidget  # noqa: E402
 
-from nncm.gui import theme as gui_theme  # noqa: E402
-from nncm.gui.workers import TaskRunner  # noqa: E402
+from casm.gui import theme as gui_theme  # noqa: E402
+from casm.gui.workers import TaskRunner  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -39,7 +39,7 @@ def _wait_for(app, condition, timeout: float = 20.0) -> None:
 
 
 def test_window_builds_and_every_stage_paints(app, tmp_path):
-    from nncm.gui.app import MainWindow
+    from casm.gui.app import MainWindow
 
     window = MainWindow(tmp_path / "project")
     window.show()
@@ -50,13 +50,13 @@ def test_window_builds_and_every_stage_paints(app, tmp_path):
         assert window.page_title.text()
 
     window.save_configuration()
-    assert (tmp_path / "project" / "nncm.json").exists()
+    assert (tmp_path / "project" / "casm.json").exists()
     window.close()
 
 
 def test_a_failure_reports_inline_and_releases_the_busy_state(app, tmp_path):
     """A calculation that failed must not leave the window looking hung."""
-    from nncm.gui.app import MainWindow
+    from casm.gui.app import MainWindow
 
     window = MainWindow(tmp_path / "project")
     page = window.sample_page
@@ -136,8 +136,8 @@ def test_plots_never_touch_pyplot():
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
 
-    from nncm.config import SamplingConfig
-    from nncm.sampling import generate_cases, plot_case_distributions
+    from casm.config import SamplingConfig
+    from casm.sampling import generate_cases, plot_case_distributions
 
     plt.close("all")
     cases, _ = generate_cases(SamplingConfig(n_vessels=8, n_leaks_per_vessel=2))
