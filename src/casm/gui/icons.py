@@ -30,14 +30,26 @@ from PySide6.QtSvg import QSvgRenderer
 
 from .. import theme as T
 
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+LOGO_SVG = ASSETS_DIR / "casm.svg"
+"""The application logo. Full-colour artwork, so it sits outside the glyph set
+and is never tinted."""
+LOGO_ICO = ASSETS_DIR / "casm.ico"
+"""The same logo pre-rendered at 16 to 256 px, for the Windows taskbar, which
+picks a size from the file rather than scaling one. Rebuilt from the SVG by
+``scripts/make_icon.py``."""
+
 _SVG = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" '
     'stroke="{colour}" stroke-width="2.25" stroke-linecap="round" '
     'stroke-linejoin="round">{body}</svg>'
 )
 
-# The five destinations, plus the rail toggle. Each drawn on the 24 grid.
+# The home page and the five destinations, plus the rail toggle. Each drawn on
+# the 24 grid.
 _GLYPHS: dict[str, str] = {
+    # Home — the landing page
+    "home": '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1Z"/>',
     # Project — a folder holding the configuration
     "folder": '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
     # Sample — points scattered over a design space
@@ -162,3 +174,25 @@ def glyph_url(name: str, colour: str | None = None, size: int = T.ICON_SIZE) -> 
         except (OSError, KeyError):
             return None
     return target.as_posix()
+
+
+def logo_pixmap(size: int, ratio: int = 2) -> QPixmap:
+    """The logo at ``size`` logical pixels, drawn at ``ratio`` for HiDPI."""
+    pixmap = QPixmap(size * ratio, size * ratio)
+    pixmap.fill(Qt.transparent)
+    pixmap.setDevicePixelRatio(ratio)
+    renderer = QSvgRenderer(str(LOGO_SVG))
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.Antialiasing, True)
+    renderer.render(painter, QRectF(0, 0, size, size))  # see _render on the rect
+    painter.end()
+    return pixmap
+
+
+def app_icon() -> QIcon:
+    """The window and taskbar icon.
+
+    The ICO where it exists, because it carries hand-sized renders the
+    taskbar picks from; the SVG otherwise.
+    """
+    return QIcon(str(LOGO_ICO if LOGO_ICO.exists() else LOGO_SVG))

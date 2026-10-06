@@ -1,7 +1,7 @@
 """The application's navigation rail.
 
-Five destinations in the order the workflow runs, each with its label and its
-icon. A rail rather than a tab bar because five destinations with multi-word
+Home, then the five stages in the order the workflow runs, each with its label
+and its icon. A rail rather than a tab bar because five destinations with multi-word
 labels do not fit a single row without abbreviating them, and because adding a
 sixth would cost horizontal space the content needs.
 
@@ -17,14 +17,16 @@ that ordering is legible.
 from __future__ import annotations
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtWidgets import QButtonGroup, QSizePolicy, QWidget
+from PySide6.QtWidgets import QButtonGroup, QLabel, QSizePolicy, QWidget
 
 from .. import theme as T
 from . import layout as ly
-from .icons import icon
+from .icons import icon, logo_pixmap
 
-# key, label, icon name. The order is the navigation order.
+# key, label, icon name. The order is the navigation order, and the index of
+# each entry is the index of its page in the window's stack.
 PAGES = (
+    ("home", "Home", "home"),
     ("project", "1 · Project", "folder"),
     ("sample", "2 · Sample", "scatter"),
     ("phast", "3 · Phast", "exchange"),
@@ -42,6 +44,7 @@ class Sidebar(QWidget):
     # icon, its padding and the rail's own margins, with nothing eliding.
     MIN_W = 164
     DEFAULT_W = 192
+    LOGO_SIZE = 22
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -51,8 +54,18 @@ class Sidebar(QWidget):
 
         panel = ly.vbox(self, margin=T.SPACING_ROW, spacing=T.SPACING_GROUP)
 
-        brand = ly.brand("CASM")
-        brand.setContentsMargins(T.SPACING_ROW, T.SPACING_ROW, T.SPACING_ROW, 0)
+        # The logo at the brand's cap height plus a little, so the pair reads
+        # as one mark rather than an image beside a word.
+        logo = QLabel()
+        logo.setPixmap(logo_pixmap(self.LOGO_SIZE))
+        logo.setFixedSize(self.LOGO_SIZE, self.LOGO_SIZE)
+        brand_row = ly.hbox(spacing=T.SPACING_ROW)
+        brand_row.setContentsMargins(T.SPACING_ROW, T.SPACING_ROW, T.SPACING_ROW, 0)
+        brand_row.addWidget(logo)
+        brand_row.addWidget(ly.brand("CASM"))
+        brand_row.addStretch(1)
+        brand = QWidget()
+        brand.setLayout(brand_row)
         brand.setToolTip("Consequence analysis surrogate model")
         panel.addWidget(brand)
 
@@ -88,6 +101,11 @@ class Sidebar(QWidget):
 
     @staticmethod
     def page_title(index: int) -> str:
-        """The page's own name, without the stage number the rail carries."""
+        """The page's own name, without the stage number the rail carries.
+
+        Empty for the home page, which names the application itself.
+        """
+        if PAGES[index][0] == "home":
+            return ""
         label = PAGES[index][1]
         return label.split("·", 1)[-1].strip()

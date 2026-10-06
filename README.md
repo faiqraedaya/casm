@@ -1,3 +1,5 @@
+<p align="center"><img src="src/casm/gui/assets/casm.svg" alt="CASM logo" width="96"></p>
+
 # CASM
 
 ## Overview
@@ -24,7 +26,7 @@ uv sync
 ```bash
 uv run casm gui
 ```
-The window works through five stages in order: Project, Sample, Phast, Train and Predict. From the command line, the same steps are `uv run casm init`, `sample --vessels 500`, `export`, then `import path/to/results.xlsx` once Phast has run, and `train`. Then predict a point with `uv run casm predict --temperature 25 --pressure 60 --orifice 25 --material METHANE`. The Safeti input template is not in the repository: copy it to `templates/Safeti Template Input Sheet.xlsx` or set `phast.template` in `casm.json`.
+The window opens on a home page, then works through five stages in order: Project, Sample, Phast, Train and Predict. From the command line, the same steps are `uv run casm init`, `sample --vessels 500`, `export`, then `import path/to/results.xlsx` once Phast has run, and `train`. Then predict a point with `uv run casm predict --temperature 25 --pressure 60 --orifice 25 --material METHANE`. The Safeti input template is not in the repository: copy it to `templates/Safeti Template Input Sheet.xlsx` or set `phast.template` in `casm.json`.
 
 ## Technical details
 A project directory (default `./workspace`) holds `casm.json` with all settings. Sampling covers temperature, pressure and orifice diameter, with log-spaced pressure and hole size, one design per material and stratified hole sizes per vessel. Every vessel name carries a design ID. Cases are written to `cases/cases.csv` and patched directly into the template's worksheet XML in `phast/input/*.xlsx`, so the rest of the workbook stays byte-identical. Columns are addressed by Safeti attribute code, and values are converted to the template's units.

@@ -367,6 +367,29 @@ QPushButton[variant="nav"]:focus {{
     border: 2px solid {ink(T.INK_GLYPH)}; padding: 5px 9px;
 }}
 
+/* -- Home page --------------------------------------------------------- */
+QLabel[role="lead"] {{
+    font-size: {T.FONT_BODY}px; color: {ink(T.INK_SECONDARY)};
+}}
+/* A stage tile: icon over its numbered name. Outlined at rest so five of them
+   read as a set of places to go, not as five primaries. */
+QToolButton[variant="tile"] {{
+    background: {T.CANVAS};
+    border: 1px solid {ink(T.SURFACE_BORDER)};
+    border-radius: {T.RADIUS_PANEL}px;
+    padding: 12px 8px;
+    font-size: {T.FONT_LABEL}px; font-weight: {T.WEIGHT_MEDIUM};
+    color: {ink(T.INK_PRIMARY)};
+}}
+QToolButton[variant="tile"]:hover {{
+    background: {ink(T.SURFACE_HOVER)};
+    border-color: {ink(T.SURFACE_BORDER_STRONG)};
+}}
+QToolButton[variant="tile"]:pressed {{ background: {ink(T.SURFACE_PRESSED)}; }}
+QToolButton[variant="tile"]:focus {{
+    border: 2px solid {ink(T.INK_GLYPH)}; padding: 11px 7px;
+}}
+
 /* -- Tables ------------------------------------------------------------ */
 /* Alternating wash, no gridlines, no cell borders — never all three. */
 QTableView, QTreeView, QListView {{
