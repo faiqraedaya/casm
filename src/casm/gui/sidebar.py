@@ -12,6 +12,10 @@ selection never rests on a background tint alone.
 The numbers stay on the labels. This is a pipeline — the order in which the
 stages are run is part of what the user needs to know, and a rail is where
 that ordering is legible.
+
+The rail collapses to a thin strip rather than disappearing, and the control
+that collapses it is the one that brings it back, in the same corner. A rail
+that vanishes entirely leaves the user a window with no visible way home.
 """
 
 from __future__ import annotations
@@ -39,12 +43,16 @@ class Sidebar(QWidget):
     """Vertical navigation. Emits the index of the page the user picked."""
 
     selected = Signal(int)
+    collapsed_changed = Signal(bool)
 
     # The longest label ("3 · Phast" is not it — "1 · Project" is) plus its
     # icon, its padding and the rail's own margins, with nothing eliding.
     MIN_W = 164
     DEFAULT_W = 192
     LOGO_SIZE = 22
+    # The collapse button and the rail's margins, and nothing else.
+    STRIP_W = T.CONTROL_HEIGHT + 2 * T.SPACING_ROW
+    MAX_W = 16777215  # Qt's QWIDGETSIZE_MAX, which PySide6 does not export
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -64,10 +72,10 @@ class Sidebar(QWidget):
         brand_row.addWidget(logo)
         brand_row.addWidget(ly.brand("CASM"))
         brand_row.addStretch(1)
-        brand = QWidget()
-        brand.setLayout(brand_row)
-        brand.setToolTip("Consequence analysis surrogate model")
-        panel.addWidget(brand)
+        self._brand = QWidget()
+        self._brand.setLayout(brand_row)
+        self._brand.setToolTip("Consequence analysis surrogate model")
+        panel.addWidget(self._brand)
 
         nav = ly.vbox(spacing=2)  # one list, so the items sit tight together
         self._group = QButtonGroup(self)
@@ -86,10 +94,57 @@ class Sidebar(QWidget):
             self._buttons.append(button)
             nav.addWidget(button)
 
-        panel.addLayout(nav)
+        self._nav = QWidget()
+        self._nav.setLayout(nav)
+        panel.addWidget(self._nav)
         panel.addStretch(1)
 
+        self._collapsed = False
+        self.collapse_button = ly.button("", variant="quiet", on_click=self.toggle)
+        self.collapse_button.setFixedSize(T.CONTROL_HEIGHT, T.CONTROL_HEIGHT)
+        self.collapse_button.setIconSize(QSize(T.ICON_SIZE, T.ICON_SIZE))
+        self.collapse_button.setCursor(Qt.PointingHandCursor)
+        foot = ly.hbox()
+        foot.addStretch(1)
+        foot.addWidget(self.collapse_button)
+        panel.addLayout(foot)
+        self._show_collapse_state()
+
         self._buttons[0].setChecked(True)
+
+    # -- collapse --------------------------------------------------------
+    def is_collapsed(self) -> bool:
+        return self._collapsed
+
+    def toggle(self) -> None:
+        self.set_collapsed(not self._collapsed)
+
+    def set_collapsed(self, collapsed: bool) -> None:
+        """Shrink to the strip, or open back out to a resizable rail.
+
+        Fixed at the strip width while collapsed, so the splitter handle
+        cannot drag a strip open into a rail with nothing in it.
+        """
+        if collapsed == self._collapsed:
+            return
+        self._collapsed = collapsed
+        self._brand.setVisible(not collapsed)
+        self._nav.setVisible(not collapsed)
+        if collapsed:
+            self.setFixedWidth(self.STRIP_W)
+        else:
+            self.setMinimumWidth(self.MIN_W)
+            self.setMaximumWidth(self.MAX_W)
+        self._show_collapse_state()
+        self.collapsed_changed.emit(collapsed)
+
+    def _show_collapse_state(self) -> None:
+        if self._collapsed:
+            self.collapse_button.setIcon(icon("chevrons-right"))
+            self.collapse_button.setToolTip("Expand the navigation rail (Ctrl+B)")
+        else:
+            self.collapse_button.setIcon(icon("chevrons-left"))
+            self.collapse_button.setToolTip("Collapse the navigation rail (Ctrl+B)")
 
     def set_current(self, index: int) -> None:
         """Mark a page as current without re-emitting the selection."""

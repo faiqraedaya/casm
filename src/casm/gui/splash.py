@@ -6,7 +6,8 @@ something on screen the user gets a taskbar entry and nothing else, which is
 indistinguishable from a launch that failed.
 
 **This module must stay cheap to import.** It reaches for PySide6 and the
-Qt-free tokens in :mod:`casm.theme`, and nothing else — a splash that has to
+Qt-free tokens in :mod:`casm.theme` and the logo from :mod:`casm.gui.icons`,
+and nothing else — a splash that has to
 wait for the slow imports before it can be shown is not a splash. The startup
 sequence in :func:`casm.gui.startup.run` imports it first, puts it on screen,
 and only then pulls in the modules that cost the time.
@@ -18,19 +19,21 @@ what is happening rather than a bar that fills at a rate nobody measured.
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QProgressBar, QWidget
+from PySide6.QtWidgets import QApplication, QLabel, QProgressBar, QWidget
 
 from .. import theme as T
 from . import layout as ly
+from .icons import logo_pixmap
 
 
 class Splash(QWidget):
-    """A frameless card: the name, what is loading, and an activity bar."""
+    """A frameless card: the logo, the name, what is loading, and an activity bar."""
 
     # Wide enough for the longest stage message without wrapping, and no
     # taller than the three things it holds. A splash that reflows as its
     # message changes draws attention to itself instead of to the wait.
     WIDTH = 380
+    LOGO_SIZE = 64
 
     def __init__(self, steps: int = 1):
         super().__init__(None, Qt.SplashScreen | Qt.FramelessWindowHint)
@@ -40,10 +43,19 @@ class Splash(QWidget):
         self._done = 0
 
         panel = ly.vbox(self, margin=T.SPACING_SECTION, spacing=T.SPACING_ROW)
-        panel.addWidget(ly.brand("CASM"))
-        panel.addWidget(ly.heading("Consequence Analysis Surrogate Model"))
+        logo = QLabel()
+        logo.setPixmap(logo_pixmap(self.LOGO_SIZE))
+        logo.setFixedSize(self.LOGO_SIZE, self.LOGO_SIZE)
+        panel.addWidget(logo, 0, Qt.AlignHCenter)
+        panel.addSpacing(T.SPACING_ROW)
+        # Title size, not brand size: the splash is the only thing on screen,
+        # so there is no page title for the name to compete with.
+        name = ly.title("CASM")
+        subtitle = ly.heading("Consequence Analysis Surrogate Model")
         self._caption = ly.caption("Starting…")
-        panel.addWidget(self._caption)
+        for label in (name, subtitle, self._caption):
+            label.setAlignment(Qt.AlignCenter)
+            panel.addWidget(label)
 
         # Determinate, because the stages are countable and each one reported
         # is a thing that actually finished. Shown at its resting position

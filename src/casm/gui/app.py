@@ -38,9 +38,9 @@ from ..config import Project, default_project_root
 from . import layout as ly
 from . import theme as gui_theme
 from .home import HomePage
-from .icons import app_icon, icon
+from .icons import app_icon, glyph_pixmap
 from .pages import Page, PhastPage, PredictPage, ProjectPage, SamplePage, TrainPage
-from .sidebar import Sidebar
+from .sidebar import PAGES, Sidebar
 from .widgets import LogView
 from .workers import TaskRunner
 
@@ -56,6 +56,7 @@ class MainWindow(QMainWindow):
     # keeps for itself. Guessing this number is how a window ends up with a
     # minimum size at which a field is still sliced in half.
     LOG_DOCK_H = 128
+    PAGE_ICON = 22
     MIN_H = (
         Page.BODY_MIN_H     # the page body's own floor
         + 44                # the page title header
@@ -83,20 +84,19 @@ class MainWindow(QMainWindow):
         # -- shell ---------------------------------------------------------
         self.sidebar = Sidebar()
         self.sidebar.selected.connect(self.show_page)
+        self.sidebar.collapsed_changed.connect(self._sidebar_collapsed)
 
         content = QWidget()
         content.setObjectName("Content")
         content_layout = ly.window_layout(content)
 
-        self.rail_toggle = ly.button("", variant="quiet", on_click=self.toggle_sidebar,
-                                     tip="Show or hide the navigation rail (Ctrl+B)")
-        self.rail_toggle.setIcon(icon("panel-left"))
-        self.rail_toggle.setIconSize(QSize(T.ICON_SIZE, T.ICON_SIZE))
-        self.rail_toggle.setCheckable(True)
-        self.rail_toggle.setChecked(True)
+        # The current page's own glyph beside its name, the same one the rail
+        # marks it with, so the two read as the same place.
+        self.page_icon = QLabel()
+        self.page_icon.setFixedSize(self.PAGE_ICON, self.PAGE_ICON)
         self.page_title = ly.title("")
-        header = ly.hbox(spacing=T.SPACING_ROW)
-        header.addWidget(self.rail_toggle)
+        header = ly.hbox(spacing=T.SPACING_ROW + 2)
+        header.addWidget(self.page_icon)
         header.addWidget(self.page_title)
         header.addStretch(1)
         content_layout.addLayout(header)
@@ -155,25 +155,26 @@ class MainWindow(QMainWindow):
         """Move to a page, and let the shared header name it."""
         self.stack.setCurrentIndex(index)
         self.sidebar.set_current(index)
-        self.page_title.setText(Sidebar.page_title(index))
+        title = Sidebar.page_title(index)
+        self.page_title.setText(title)
+        # The home page names itself in its body, so its header stays empty.
+        self.page_icon.setVisible(bool(title))
+        if title:
+            self.page_icon.setPixmap(glyph_pixmap(PAGES[index][2], self.PAGE_ICON))
 
     def toggle_sidebar(self) -> None:
-        """Hide or show the rail, restoring the width it had.
+        """Collapse the rail to its strip, or expand it to the width it had."""
+        self.sidebar.toggle()
 
-        The toggle stays visible either way — a rail with no way back is a
-        destination list the user has lost.
-        """
-        visible = not self.sidebar.isVisible()
-        if not visible:
+    def _sidebar_collapsed(self, collapsed: bool) -> None:
+        if collapsed:
             self._sidebar_width = max(self.splitter.sizes()[0], Sidebar.MIN_W)
-        self.sidebar.setVisible(visible)
-        self.rail_toggle.setChecked(visible)
-        if visible:
-            self.splitter.setSizes(
-                [self._sidebar_width, max(self.width() - self._sidebar_width, 1)]
-            )
+            width = Sidebar.STRIP_W
+        else:
+            width = self._sidebar_width
+        self.splitter.setSizes([width, max(self.width() - width, 1)])
         if hasattr(self, "sidebar_action"):
-            self.sidebar_action.setChecked(visible)
+            self.sidebar_action.setChecked(not collapsed)
 
     # -- menus -------------------------------------------------------------
     def _build_menus(self) -> None:
@@ -212,10 +213,10 @@ class MainWindow(QMainWindow):
                              "Predict every row of a CSV and write the results beside it."))
 
         view = self.menuBar().addMenu("&View")
-        self.sidebar_action = QAction("Show navigation rail", self, checkable=True)
+        self.sidebar_action = QAction("Expand navigation rail", self, checkable=True)
         self.sidebar_action.setChecked(True)
         self.sidebar_action.setShortcut(QKeySequence("Ctrl+B"))
-        self.sidebar_action.setStatusTip("Hide the rail to give the page its width.")
+        self.sidebar_action.setStatusTip("Collapse the rail to a strip to give the page its width.")
         self.sidebar_action.triggered.connect(self.toggle_sidebar)
         view.addAction(self.sidebar_action)
         view.addSeparator()
@@ -357,7 +358,7 @@ class MainWindow(QMainWindow):
             [self._sidebar_width, max(self.width() - self._sidebar_width, 1)]
         )
         if settings.value("sidebar/visible", "true") == "false":
-            self.toggle_sidebar()
+            self.sidebar.set_collapsed(True)
         if settings.value("log/visible", "true") == "false":
             self.log_dock.setVisible(False)
         page = int(settings.value("window/page", 0))
@@ -365,10 +366,10 @@ class MainWindow(QMainWindow):
 
     def _save_settings(self) -> None:
         settings = self.settings
-        if self.sidebar.isVisible():
+        if not self.sidebar.is_collapsed():
             self._sidebar_width = max(self.splitter.sizes()[0], Sidebar.MIN_W)
         settings.setValue("sidebar/width", self._sidebar_width)
-        settings.setValue("sidebar/visible", "true" if self.sidebar.isVisible() else "false")
+        settings.setValue("sidebar/visible", "false" if self.sidebar.is_collapsed() else "true")
         settings.setValue("log/visible", "true" if self.log_dock.isVisible() else "false")
         settings.setValue("window/page", self.stack.currentIndex())
 
