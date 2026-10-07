@@ -25,6 +25,7 @@ from PySide6.QtWidgets import QApplication
 
 # Cheap: PySide6, plus the Qt-free tokens. Nothing here reaches for pandas.
 from . import theme as gui_theme
+from .icons import app_icon
 from .splash import Splash
 
 # Named in the user's terms, and each one is a stage that actually happens.
@@ -38,7 +39,10 @@ _STAGES = (
 
 def run(project_root: Path | None = None) -> int:
     """Start the application, showing progress while it loads."""
+    _set_windows_app_id()
     app = QApplication.instance() or QApplication(sys.argv)
+    # Set on the application, so the splash and every dialog carry it too.
+    app.setWindowIcon(app_icon())
 
     # Before the splash, so the splash is themed like everything else. Both
     # are cheap; between them they cost a tenth of a second.
@@ -68,3 +72,21 @@ def run(project_root: Path | None = None) -> int:
 
     splash.finish(window)
     return app.exec()
+
+
+def _set_windows_app_id() -> None:
+    """Give the process its own taskbar identity on Windows.
+
+    Without an explicit AppUserModelID, Windows groups the window under the
+    interpreter that launched it and shows python.exe's icon in the taskbar,
+    whatever the window's own icon is. Must run before the first window is
+    created.
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("casm.casm")
+    except (AttributeError, OSError):
+        pass  # an older shell: the taskbar falls back to python.exe's icon

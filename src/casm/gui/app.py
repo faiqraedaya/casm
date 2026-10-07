@@ -1,7 +1,7 @@
-"""The window: a navigation rail, five stages, one log, one status line.
+"""The window: a navigation rail, a home page, five stages, one log, one status line.
 
 The rail is the workflow, top to bottom, and it names the stages in the order
-they are run. The content area names the current page once, in one place,
+they are run, under a home page that introduces them. The content area names the current page once, in one place,
 driven by the rail — five separately-placed titles drift, one placement
 cannot.
 
@@ -37,7 +37,8 @@ from .. import theme as T
 from ..config import Project, default_project_root
 from . import layout as ly
 from . import theme as gui_theme
-from .icons import icon
+from .home import HomePage
+from .icons import app_icon, icon
 from .pages import Page, PhastPage, PredictPage, ProjectPage, SamplePage, TrainPage
 from .sidebar import Sidebar
 from .widgets import LogView
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow):
     def __init__(self, project_root: Path | None = None):
         super().__init__()
         self.setWindowTitle("CASM — Consequence analysis surrogate model")
+        self.setWindowIcon(app_icon())
         self.setMinimumSize(QSize(self.MIN_W, self.MIN_H))
         self.resize(1360, 900)
         self.project = Project.create(Path(project_root or default_project_root()))
@@ -100,6 +102,8 @@ class MainWindow(QMainWindow):
         content_layout.addLayout(header)
 
         self.stack = QStackedWidget()
+        self.home_page = HomePage(self.show_page)
+        self.stack.addWidget(self.home_page)  # index 0, as in the rail
         self.project_page = ProjectPage(self)
         self.sample_page = SamplePage(self)
         self.phast_page = PhastPage(self)
@@ -305,7 +309,7 @@ class MainWindow(QMainWindow):
         except ValueError as exc:
             # Bad input is reported where the mistake is, naming the value.
             self.project_page.report_problem(str(exc))
-            self.show_page(0)
+            self.show_page(self.stack.indexOf(self.project_page))
             self.report("The configuration is not valid.")
             return
         self.project_page.report_problem("")
@@ -334,6 +338,7 @@ class MainWindow(QMainWindow):
             page.set_detail_visible(visible)
 
     def _pages(self):
+        """The five stages, without the home page, which has no state."""
         return (
             self.project_page,
             self.sample_page,
@@ -401,7 +406,7 @@ class MainWindow(QMainWindow):
             "drives them through Phast or Safeti, and trains a surrogate model "
             "that predicts consequence results in milliseconds rather than "
             "minutes.</p>"
-            f"<p style='color:{T.ink_hex(T.INK_SECONDARY)};'>The five destinations "
+            f"<p style='color:{T.ink_hex(T.INK_SECONDARY)};'>The five stages "
             "in the rail are the workflow, top to bottom. Everything the window "
             "can do is in the menu bar.</p>",
         )

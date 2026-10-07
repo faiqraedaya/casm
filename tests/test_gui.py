@@ -43,11 +43,18 @@ def test_window_builds_and_every_stage_paints(app, tmp_path):
 
     window = MainWindow(tmp_path / "project")
     window.show()
-    assert window.stack.count() == 5
-    for index in range(window.stack.count()):
+    assert window.stack.count() == 6
+    assert window.stack.widget(0) is window.home_page
+    for index in range(1, window.stack.count()):
         window.show_page(index)
         app.processEvents()
         assert window.page_title.text()
+
+    # Each home tile opens the stage it names.
+    for number, tile in enumerate(window.home_page.tiles, start=1):
+        tile.click()
+        assert window.stack.currentIndex() == number
+        assert window.page_title.text() in tile.text()
 
     window.save_configuration()
     assert (tmp_path / "project" / "casm.json").exists()
