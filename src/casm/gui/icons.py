@@ -45,7 +45,7 @@ _SVG = (
     'stroke-linejoin="round">{body}</svg>'
 )
 
-# The home page and the five destinations, plus the rail toggle. Each drawn on
+# The home page and the five destinations, plus the rail's controls. Each drawn on
 # the 24 grid.
 _GLYPHS: dict[str, str] = {
     # Home — the landing page
@@ -74,10 +74,9 @@ _GLYPHS: dict[str, str] = {
         '<path d="M4 4v15a1 1 0 0 0 1 1h15"/>'
         '<path d="M7.5 16l3.5-4.5 3 2.5L20 8"/>'
     ),
-    # The navigation rail toggle
-    "panel-left": (
-        '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9.5 4v16"/>'
-    ),
+    # The navigation rail's collapse and expand control
+    "chevrons-left": '<path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/>',
+    "chevrons-right": '<path d="M6 17l5-5-5-5"/><path d="M13 17l5-5-5-5"/>',
     # The log panel toggle
     "terminal": '<path d="M5 8l3.5 3.5L5 15"/><path d="M12 16h7"/>',
     # A style sheet can only reference an image by URL, so these two are also
@@ -132,6 +131,11 @@ def icon(name: str, size: int = T.ICON_SIZE) -> QIcon:
     for mode, state, alpha in _STATES:
         built.addPixmap(_render(body, T.ink_hex(alpha), size), mode, state)
     return built
+
+
+def glyph_pixmap(name: str, size: int, alpha: float = T.INK_GLYPH) -> QPixmap:
+    """One glyph as a plain image at one tint, for a label rather than a control."""
+    return _render(_GLYPHS[name], T.ink_hex(alpha), size)
 
 
 def names() -> tuple[str, ...]:

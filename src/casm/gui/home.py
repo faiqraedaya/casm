@@ -17,22 +17,13 @@ from . import layout as ly
 from .icons import icon, logo_pixmap
 from .sidebar import PAGES
 
-DESCRIPTION = (
-    "Samples release scenarios, prepares them for Phast or Safeti, and trains "
-    "a neural network on the results. The trained model predicts release "
-    "consequences in milliseconds anywhere inside the sampled range."
-)
-
-
 class HomePage(QWidget):
-    """Logo, title, description and the five stages, centred as one block."""
+    """Logo, name, full name and the five stages, centred as one block."""
 
     LOGO_SIZE = 96
     TILE_W = 128
     TILE_H = 96
     TILE_ICON = 24
-    # Wide enough for two lines at body size, narrow enough to read as a lead.
-    TEXT_W = 520
 
     def __init__(self, open_page: Callable[[int], None], parent: QWidget | None = None):
         super().__init__(parent)
@@ -46,23 +37,13 @@ class HomePage(QWidget):
         outer.addWidget(logo, 0, Qt.AlignHCenter)
         outer.addSpacing(T.SPACING_GROUP)
 
-        title = ly.title("Consequence Analysis Surrogate Model")
-        title.setAlignment(Qt.AlignCenter)
-        outer.addWidget(title, 0, Qt.AlignHCenter)
-        outer.addSpacing(T.SPACING_ROW)
+        name = ly.title("CASM")
+        outer.addWidget(name, 0, Qt.AlignHCenter)
+        outer.addSpacing(T.SPACING_ROW // 2)
 
-        lead = QLabel(DESCRIPTION)
-        lead.setProperty("role", "lead")
-        lead.setWordWrap(True)
-        lead.setAlignment(Qt.AlignCenter)
-        # Fixed, not maximum: a wrapping label with only a ceiling asks for its
-        # narrowest width and wraps to a column of single words.
-        lead.setFixedWidth(self.TEXT_W)
-        # A wrapped label in a box layout is otherwise given its one-line
-        # height, and the stretches above and below take the rest.
-        lead.ensurePolished()
-        lead.setMinimumHeight(lead.heightForWidth(self.TEXT_W))
-        outer.addWidget(lead, 0, Qt.AlignHCenter)
+        full_name = QLabel("Consequence Analysis Surrogate Model")
+        full_name.setProperty("role", "lead")
+        outer.addWidget(full_name, 0, Qt.AlignHCenter)
         outer.addSpacing(T.SPACING_SECTION)
 
         tiles = ly.hbox(spacing=T.SPACING_ROW + 4)

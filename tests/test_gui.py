@@ -61,6 +61,30 @@ def test_window_builds_and_every_stage_paints(app, tmp_path):
     window.close()
 
 
+def test_the_rail_collapses_to_a_strip_and_expands_again(app, tmp_path):
+    """Collapsed, the rail keeps its expand button on screen."""
+    from casm.gui.app import MainWindow
+    from casm.gui.sidebar import Sidebar
+
+    window = MainWindow(tmp_path / "project")
+    window.show()
+    rail = window.sidebar
+    rail.set_collapsed(False)
+    app.processEvents()
+
+    rail.collapse_button.click()
+    app.processEvents()
+    assert rail.is_collapsed()
+    assert rail.isVisible() and rail.width() == Sidebar.STRIP_W
+    assert rail.collapse_button.isVisible()
+
+    rail.collapse_button.click()
+    app.processEvents()
+    assert not rail.is_collapsed()
+    assert rail.width() >= Sidebar.MIN_W
+    window.close()
+
+
 def test_a_failure_reports_inline_and_releases_the_busy_state(app, tmp_path):
     """A calculation that failed must not leave the window looking hung."""
     from casm.gui.app import MainWindow
